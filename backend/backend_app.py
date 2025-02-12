@@ -17,31 +17,31 @@ def get_posts():
 
 @app.route('/api/posts', methods=['POST'])
 def add_posts():
+    """
+    adds posts
+    """
     if request.method == 'POST':
-            # Get the new book data from the client
         data = request.get_json()
-
             # Generate a new ID for the post
-
         new_post = {"id": len(POSTS)+1,
                     "title": data["title"],
                     "content": data["content"]
                     }
 
-        # Add the new book to our list
         POSTS.append(new_post)
         print("HERE")
         # Return the new post data to the client
         return jsonify(new_post), 201
     else:
-        # Handle the GET request
         return jsonify(POSTS)
 
 
 @app.route('/api/posts/<int:post_id>', methods=['DELETE'])
 def delete_post(post_id):
+    """
+    deletes a post by it´s id
+    """
     global POSTS
-    # Find the book with the given ID
     deletable_post = None
     for post in POSTS:
         if post["id"] == post_id:
@@ -59,19 +59,19 @@ def delete_post(post_id):
 def update(post_id):
     """Update a blog post by ID."""
     global POSTS
-    post_to_update = next((post for post in POSTS if post['id'] == post_id), None)
-    if post_to_update is None:
+    updatable_post = next((post for post in POSTS if post['id'] == post_id), None)
+    if updatable_post is None:
         return jsonify({"error": "Post not found"}), 404
     data = request.get_json()
     if 'title' in data:
-        post_to_update['title'] = data['title']
+        updatable_post['title'] = data['title']
     if 'content' in data:
-        post_to_update['content'] = data['content']
+        updatable_post['content'] = data['content']
 
     return jsonify({
-        "id": post_to_update['id'],
-        "title": post_to_update['title'],
-        "content": post_to_update['content']
+        "id": updatable_post['id'],
+        "title": updatable_post['title'],
+        "content": updatable_post['content']
     }), 200
 
 
@@ -79,25 +79,26 @@ def update(post_id):
 @app.route('/api/posts/search', methods=['GET'])
 def search_by_title():
     """Search for posts by title or content."""
-    search_parameter = request.args.get('query', '').strip().lower()
-    matching_posts = [post for post in POSTS if search_parameter in
+    search_parameter = request.args.get('query', '').lower()
+    found_posts = [post for post in POSTS if search_parameter in
                       post['title'].lower() or search_parameter in
                       post['content'].lower()]
-    if matching_posts:
-        return jsonify(matching_posts)
+    if found_posts:
+        return jsonify(found_posts)
     else:
         return jsonify({"error": "Post not found "}), 404
 
 
 @app.route('/api/posts', methods=['GET'])
 def get_sorted_posts():
-    """Get all posts sorted by title or content."""
+    """Get the posts sorted by title or content.
+    """
     sort_by = request.args.get('sort', '').strip().lower()
     direction = request.args.get('direction', 'asc').strip().lower()
 
-    valid_sort_fields = {'title', 'content'}
+    sorting_categories = {'title', 'content'}
 
-    if sort_by in valid_sort_fields:
+    if sort_by in sorting_categories:
         reverse_order = direction == 'desc'
         sorted_posts = sorted(POSTS, key=lambda post: (post[sort_by] or "").lower(), reverse=reverse_order)
     else:
